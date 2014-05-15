@@ -1,25 +1,51 @@
 package ch.uzh.csg.samplepaymentproject;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 public class MainActivity extends Activity {
+	
+	private ToggleButton toggleNfc;
+	private ToggleButton toggleHce;
+	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		if (savedInstanceState == null) {
-			getFragmentManager().beginTransaction()
-					.add(R.id.container, new PlaceholderFragment()).commit();
-		}
+		toggleNfc = (ToggleButton) findViewById(R.id.enableNfcToggle);
+		toggleHce = (ToggleButton) findViewById(R.id.enableHCEToggle);
+		
+		toggleNfc.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					toggleHce.setChecked(false);
+					
+				} else {
+					toggleHce.setChecked(true);
+					
+				}
+			}
+		});
+		
+		toggleHce.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+		    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+		        if (isChecked) {
+		        	toggleNfc.setChecked(false);
+		        	
+		        } else {
+		        	toggleNfc.setChecked(true);
+		        	
+		        }
+		    }
+		});
+		
+		toggleNfc.setChecked(true);
 	}
 
 	@Override
@@ -40,23 +66,6 @@ public class MainActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
-	}
-
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
-	public static class PlaceholderFragment extends Fragment {
-
-		public PlaceholderFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_main, container,
-					false);
-			return rootView;
-		}
 	}
 
 }

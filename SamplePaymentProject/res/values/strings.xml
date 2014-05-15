@@ -2,7 +2,10 @@
 <resources>
 
     <string name="app_name">SamplePaymentProject</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    
+    <string name="enableNfcTransceiver">Enable NFC Transceiver</string>
+    <string name="enableHCE">Enable HCE</string>
+    
 
 </resources>
