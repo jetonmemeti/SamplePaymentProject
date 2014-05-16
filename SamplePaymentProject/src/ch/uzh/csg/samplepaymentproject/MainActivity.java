@@ -7,6 +7,12 @@ import android.view.MenuItem;
 import android.widget.CompoundButton;
 import android.widget.ToggleButton;
 
+//TODO: javadoc
+/**
+ * 
+ * @author Jeton Memeti
+ *
+ */
 public class MainActivity extends Activity {
 	
 	private ToggleButton toggleNfc;
