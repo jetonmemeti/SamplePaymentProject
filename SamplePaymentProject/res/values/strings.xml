@@ -7,5 +7,11 @@
     <string name="enableNfcTransceiver">Enable NFC Transceiver</string>
     <string name="enableHCE">Enable HCE</string>
     
+    <string name="receiveBTC">Receive 5 BTC</string>
+    
+    <!-- APDU SERVICE -->
+    <string name="aiddescription">ch.uzh.csg.nfclib</string>
+    <string name="servicedesc">Android KitKat NFC Library</string>
+    
 
 </resources>

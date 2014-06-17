@@ -11,35 +11,36 @@
         android:layout_height="match_parent" >
 
         <TextView
-            android:id="@+id/enableNfcTransceiverText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:text="@string/enableNfcTransceiver" />
-
-        <ToggleButton
-            android:id="@+id/enableNfcToggle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_marginLeft="40dp"
-            android:layout_toRightOf="@+id/enableNfcTransceiverText" />
-
-        <TextView
             android:id="@+id/enableHCEText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:layout_below="@+id/enableNfcToggle"
+            android:layout_alignParentTop="true"
             android:text="@string/enableHCE" />
+
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/enableHCEToggle"
+            android:text="@string/receiveBTC" />
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/TextView01"
+            android:layout_marginLeft="63dp"
+            android:layout_toRightOf="@+id/TextView01"
+            android:text="Send" />
 
         <ToggleButton
             android:id="@+id/enableHCEToggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/enableNfcToggle"
-            android:layout_alignTop="@+id/enableHCEText" />
+            android:layout_alignLeft="@+id/button1"
+            android:layout_alignParentTop="true" />
 
     </RelativeLayout>
 
