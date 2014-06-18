@@ -5,8 +5,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.UUID;
@@ -62,28 +60,13 @@ public class MainActivity extends Activity {
 	protected static final String PREF_UNIQUE_ID = "pref_unique_id";
 	private static String uniqueID;
 	
-	private static final String TAG = "**NFC**";
+	private static final String TAG = "##NFC## MainActivity";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.i(TAG, "start");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-
-		final ToggleButton toggleHce = (ToggleButton) findViewById(R.id.enableHCEToggle);
-
-		toggleHce.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				if (isChecked) {
-					toggleHce.setChecked(false);
-
-				} else {
-					toggleHce.setChecked(true);
-
-				}
-			}
-		});
-		toggleHce.setChecked(true);
 
 		final PaymentEventHandler eventHandler = new PaymentEventHandler() {
 

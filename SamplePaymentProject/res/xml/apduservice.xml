@@ -5,7 +5,7 @@
     <aid-group
         android:category="other"
         android:description="@string/aiddescription" >
-        <aid-filter android:name="F0F00777FF5512" />
+        <aid-filter android:name="F0F00777FF5511" />
     </aid-group>
 
 </host-apdu-service>
