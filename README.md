@@ -13,8 +13,8 @@ Installation Guidelines:
 ------------------------
 <ul>
   <li>Clone this git repository.</li>
-  <li>In Eclipse go to <i>File --> Import --> Android --> Existing Android Code Into Workspace</i>. In the appearing dialog under <i>Root Directory</i> enter the path to the checked out project in your git repository.</li>
-  <li>Under <i>Project to Import</i> select the <i>SamplePaymentProject</i>. Consider renaming the project (see <i>New Project Name</i>), otherwise it will be called <i>MainActivity</i>.</li>
-  <li>Click on <i>Finish</i>.</li>
-  <li>Right click on the project and select <i>Properties --> Configure --> Convert to Maven Project</i>.</li>
+  <li>In Eclipse go to <code>File --> Import --> Android --> Existing Android Code Into Workspace</code>. In the appearing dialog under <code>Root Directory</code> enter the path to the checked out project in your git repository.</li>
+  <li>Under <code>Project to Import</code> select the <i>SamplePaymentProject</i>. Consider renaming the project (see <code>New Project Name</code>), otherwise it will be called <i>MainActivity</i>.</li>
+  <li>Click on <code>Finish</code>.</li>
+  <li>Right click on the project and select <code>Properties --> Configure --> Convert to Maven Project</code>.</li>
 </ul>
