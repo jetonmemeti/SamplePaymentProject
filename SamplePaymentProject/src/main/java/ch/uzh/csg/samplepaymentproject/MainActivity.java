@@ -29,8 +29,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.ToggleButton;
 import ch.uzh.csg.mbps.customserialization.Currency;
 import ch.uzh.csg.mbps.customserialization.PKIAlgorithm;
 import ch.uzh.csg.mbps.customserialization.exceptions.UnknownPKIAlgorithmException;
@@ -38,7 +36,7 @@ import ch.uzh.csg.nfclib.exceptions.NfcNotEnabledException;
 import ch.uzh.csg.nfclib.exceptions.NoNfcException;
 import ch.uzh.csg.paymentlib.IUserPromptPaymentRequest;
 import ch.uzh.csg.paymentlib.PaymentEvent;
-import ch.uzh.csg.paymentlib.PaymentEventHandler;
+import ch.uzh.csg.paymentlib.PaymentEventInterface;
 import ch.uzh.csg.paymentlib.PaymentRequestHandler;
 import ch.uzh.csg.paymentlib.PaymentRequestInitializer;
 import ch.uzh.csg.paymentlib.PaymentRequestInitializer.PaymentType;
@@ -68,7 +66,7 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		final PaymentEventHandler eventHandler = new PaymentEventHandler() {
+		final PaymentEventInterface eventHandler = new PaymentEventInterface() {
 
 			@Override
 			public void handleMessage(PaymentEvent event, Object object) {
