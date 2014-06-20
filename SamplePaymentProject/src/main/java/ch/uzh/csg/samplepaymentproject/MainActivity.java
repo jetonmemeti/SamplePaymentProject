@@ -30,9 +30,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import ch.uzh.csg.mbps.customserialization.Currency;
+import ch.uzh.csg.mbps.customserialization.DecoderFactory;
 import ch.uzh.csg.mbps.customserialization.PKIAlgorithm;
+import ch.uzh.csg.mbps.customserialization.PaymentRequest;
+import ch.uzh.csg.mbps.customserialization.PaymentResponse;
+import ch.uzh.csg.mbps.customserialization.ServerPaymentRequest;
+import ch.uzh.csg.mbps.customserialization.ServerPaymentResponse;
+import ch.uzh.csg.mbps.customserialization.ServerResponseStatus;
 import ch.uzh.csg.mbps.customserialization.exceptions.UnknownPKIAlgorithmException;
 import ch.uzh.csg.nfclib.transceiver.NfcLibException;
+import ch.uzh.csg.paymentlib.IServerResponseListener;
 import ch.uzh.csg.paymentlib.IUserPromptPaymentRequest;
 import ch.uzh.csg.paymentlib.PaymentEvent;
 import ch.uzh.csg.paymentlib.PaymentEventInterface;
@@ -56,7 +63,7 @@ public class MainActivity extends Activity {
 
 	protected static final String PREF_UNIQUE_ID = "pref_unique_id";
 	private static String uniqueID;
-	
+
 	private static final String TAG = "##NFC## MainActivity";
 
 	@Override
@@ -65,25 +72,47 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		final PaymentEventInterface eventHandler = new PaymentEventInterface() {
-
-			@Override
-			public void handleMessage(PaymentEvent event, Object object) {
-				Log.i(TAG, "evt:" + event + " obj:" + object);
-			}
-		};
-		String userName = id(getApplicationContext());
-		
-		
 		try {
+			final KeyPair keyPairServer = generateKeyPair();
+			final ServerInfos serverInfos = new ServerInfos(keyPairServer.getPublic());
 			
+			final PaymentEventInterface eventHandler = new PaymentEventInterface() {
+
+				@Override
+				public void handleMessage(PaymentEvent event, Object object) {
+					Log.i(TAG, "evt1:" + event + " obj:" + object);
+				}
+
+				@Override
+                public void handleMessage(PaymentEvent event, Object object, IServerResponseListener caller) {
+					if (event == PaymentEvent.FORWARD_TO_SERVER) {
+						try {
+							ServerPaymentRequest decode = DecoderFactory.decode(ServerPaymentRequest.class,
+							        (byte[]) object);
+							PaymentRequest paymentRequestPayer = decode.getPaymentRequestPayer();
+
+							PaymentResponse pr = new PaymentResponse(PKIAlgorithm.DEFAULT, 1,
+							        ServerResponseStatus.SUCCESS, null, paymentRequestPayer.getUsernamePayer(),
+							        paymentRequestPayer.getUsernamePayee(), paymentRequestPayer.getCurrency(),
+							        paymentRequestPayer.getAmount(), paymentRequestPayer.getTimestamp());
+							pr.sign(keyPairServer.getPrivate());
+							ServerPaymentResponse spr = new ServerPaymentResponse(pr);
+							caller.onServerResponse(spr);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+					Log.i(TAG, "evt2:" + event + " obj:" + object);
+	                
+                }
+			};
+			String userName = id(getApplicationContext());
+
 			final KeyPair keyPair = generateKeyPair();
-			
+
 			final UserInfos userInfos = new UserInfos(userName, keyPair.getPrivate(), PKIAlgorithm.DEFAULT, 1);
 
 			final PaymentInfos paymentInfos = new PaymentInfos(Currency.BTC, 5);
-			
-			final ServerInfos serverInfos = new ServerInfos(keyPair.getPublic());
 
 			Button sendButton = (Button) findViewById(R.id.button1);
 			sendButton.setOnClickListener(new View.OnClickListener() {
@@ -99,7 +128,7 @@ public class MainActivity extends Activity {
 						Log.i(TAG, "init payment");
 						PaymentRequestInitializer init = new PaymentRequestInitializer(MainActivity.this, eventHandler,
 						        userInfos, paymentInfos, serverInfos, PaymentType.REQUEST_PAYMENT);
-						
+
 					} catch (IllegalArgumentException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -235,9 +264,9 @@ public class MainActivity extends Activity {
 		}
 		return uniqueID;
 	}
-	
+
 	private static final String SECURITY_PROVIDER = "SC";
-	
+
 	/**
 	 * Adds the spongy castle security provider in order to be able to generate
 	 * ECC KeyPairs on Android. (See http://rtyley.github.io/spongycastle/ for
@@ -246,7 +275,7 @@ public class MainActivity extends Activity {
 	static {
 		Security.addProvider(new BouncyCastleProvider());
 	}
-	
+
 	/**
 	 * Generates a KeyPair with the default {@link PKIAlgorithm}.
 	 * 
@@ -255,7 +284,8 @@ public class MainActivity extends Activity {
 	 * @throws NoSuchProviderException
 	 * @throws InvalidAlgorithmParameterException
 	 */
-	public static KeyPair generateKeyPair() throws UnknownPKIAlgorithmException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+	public static KeyPair generateKeyPair() throws UnknownPKIAlgorithmException, NoSuchAlgorithmException,
+	        NoSuchProviderException, InvalidAlgorithmParameterException {
 		return generateKeyPair(PKIAlgorithm.DEFAULT);
 	}
 
@@ -269,10 +299,11 @@ public class MainActivity extends Activity {
 	 * @throws NoSuchProviderException
 	 * @throws InvalidAlgorithmParameterException
 	 */
-	public static KeyPair generateKeyPair(PKIAlgorithm algorithm) throws UnknownPKIAlgorithmException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+	public static KeyPair generateKeyPair(PKIAlgorithm algorithm) throws UnknownPKIAlgorithmException,
+	        NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
 		if (algorithm.getCode() != PKIAlgorithm.DEFAULT.getCode())
 			throw new UnknownPKIAlgorithmException();
-		
+
 		ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(algorithm.getKeyPairSpecification());
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance(algorithm.getKeyPairAlgorithm(), SECURITY_PROVIDER);
 		keyGen.initialize(ecSpec, new SecureRandom());
