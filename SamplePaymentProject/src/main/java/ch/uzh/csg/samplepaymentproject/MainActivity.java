@@ -38,7 +38,8 @@ import ch.uzh.csg.mbps.customserialization.ServerPaymentRequest;
 import ch.uzh.csg.mbps.customserialization.ServerPaymentResponse;
 import ch.uzh.csg.mbps.customserialization.ServerResponseStatus;
 import ch.uzh.csg.mbps.customserialization.exceptions.UnknownPKIAlgorithmException;
-import ch.uzh.csg.nfclib.transceiver.NfcLibException;
+import ch.uzh.csg.nfclib.NfcLibException;
+import ch.uzh.csg.nfclib.Utils;
 import ch.uzh.csg.paymentlib.IServerResponseListener;
 import ch.uzh.csg.paymentlib.IUserPromptPaymentRequest;
 import ch.uzh.csg.paymentlib.PaymentEvent;
@@ -73,7 +74,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		try {
-			final KeyPair keyPairServer = generateKeyPair();
+			final KeyPair keyPairServer = generateKeyPair(42);
 			final ServerInfos serverInfos = new ServerInfos(keyPairServer.getPublic());
 			
 			final PaymentEventInterface eventHandler = new PaymentEventInterface() {
@@ -85,6 +86,7 @@ public class MainActivity extends Activity {
 
 				@Override
                 public void handleMessage(PaymentEvent event, Object object, IServerResponseListener caller) {
+					Log.i(TAG, "evt2:" + event + " obj:" + object);
 					if (event == PaymentEvent.FORWARD_TO_SERVER) {
 						try {
 							ServerPaymentRequest decode = DecoderFactory.decode(ServerPaymentRequest.class,
@@ -102,7 +104,7 @@ public class MainActivity extends Activity {
 							e.printStackTrace();
 						}
 					}
-					Log.i(TAG, "evt2:" + event + " obj:" + object);
+					
 	                
                 }
 			};
@@ -275,6 +277,11 @@ public class MainActivity extends Activity {
 	static {
 		Security.addProvider(new BouncyCastleProvider());
 	}
+	
+	public static KeyPair generateKeyPair() throws UnknownPKIAlgorithmException, NoSuchAlgorithmException,
+    	NoSuchProviderException, InvalidAlgorithmParameterException {
+			return generateKeyPair(PKIAlgorithm.DEFAULT, 0);
+	}
 
 	/**
 	 * Generates a KeyPair with the default {@link PKIAlgorithm}.
@@ -284,9 +291,9 @@ public class MainActivity extends Activity {
 	 * @throws NoSuchProviderException
 	 * @throws InvalidAlgorithmParameterException
 	 */
-	public static KeyPair generateKeyPair() throws UnknownPKIAlgorithmException, NoSuchAlgorithmException,
+	public static KeyPair generateKeyPair(long seed) throws UnknownPKIAlgorithmException, NoSuchAlgorithmException,
 	        NoSuchProviderException, InvalidAlgorithmParameterException {
-		return generateKeyPair(PKIAlgorithm.DEFAULT);
+		return generateKeyPair(PKIAlgorithm.DEFAULT, seed);
 	}
 
 	/**
@@ -299,14 +306,18 @@ public class MainActivity extends Activity {
 	 * @throws NoSuchProviderException
 	 * @throws InvalidAlgorithmParameterException
 	 */
-	public static KeyPair generateKeyPair(PKIAlgorithm algorithm) throws UnknownPKIAlgorithmException,
+	public static KeyPair generateKeyPair(PKIAlgorithm algorithm, long seed) throws UnknownPKIAlgorithmException,
 	        NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
 		if (algorithm.getCode() != PKIAlgorithm.DEFAULT.getCode())
 			throw new UnknownPKIAlgorithmException();
 
 		ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(algorithm.getKeyPairSpecification());
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance(algorithm.getKeyPairAlgorithm(), SECURITY_PROVIDER);
-		keyGen.initialize(ecSpec, new SecureRandom());
+		if(seed != 0) {
+			keyGen.initialize(ecSpec, new SecureRandom());
+		} else {
+			keyGen.initialize(ecSpec, new SecureRandom(Utils.longToByteArray(seed)));
+		}
 		return keyGen.generateKeyPair();
 	}
 }
