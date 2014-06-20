@@ -32,8 +32,7 @@ import android.widget.Button;
 import ch.uzh.csg.mbps.customserialization.Currency;
 import ch.uzh.csg.mbps.customserialization.PKIAlgorithm;
 import ch.uzh.csg.mbps.customserialization.exceptions.UnknownPKIAlgorithmException;
-import ch.uzh.csg.nfclib.exceptions.NfcNotEnabledException;
-import ch.uzh.csg.nfclib.exceptions.NoNfcException;
+import ch.uzh.csg.nfclib.transceiver.NfcLibException;
 import ch.uzh.csg.paymentlib.IUserPromptPaymentRequest;
 import ch.uzh.csg.paymentlib.PaymentEvent;
 import ch.uzh.csg.paymentlib.PaymentEventInterface;
@@ -104,10 +103,7 @@ public class MainActivity extends Activity {
 					} catch (IllegalArgumentException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					} catch (NoNfcException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (NfcNotEnabledException e) {
+					} catch (NfcLibException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
