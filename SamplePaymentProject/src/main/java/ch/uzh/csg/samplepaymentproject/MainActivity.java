@@ -40,10 +40,10 @@ import ch.uzh.csg.mbps.customserialization.ServerResponseStatus;
 import ch.uzh.csg.mbps.customserialization.exceptions.UnknownPKIAlgorithmException;
 import ch.uzh.csg.nfclib.NfcLibException;
 import ch.uzh.csg.nfclib.Utils;
+import ch.uzh.csg.paymentlib.IPaymentEventHandler;
 import ch.uzh.csg.paymentlib.IServerResponseListener;
 import ch.uzh.csg.paymentlib.IUserPromptPaymentRequest;
 import ch.uzh.csg.paymentlib.PaymentEvent;
-import ch.uzh.csg.paymentlib.PaymentEventInterface;
 import ch.uzh.csg.paymentlib.PaymentRequestHandler;
 import ch.uzh.csg.paymentlib.PaymentRequestInitializer;
 import ch.uzh.csg.paymentlib.PaymentRequestInitializer.PaymentType;
@@ -77,7 +77,7 @@ public class MainActivity extends Activity {
 			final KeyPair keyPairServer = generateKeyPair(42);
 			final ServerInfos serverInfos = new ServerInfos(keyPairServer.getPublic());
 			
-			final PaymentEventInterface eventHandler = new PaymentEventInterface() {
+			final IPaymentEventHandler eventHandler = new IPaymentEventHandler() {
 
 				@Override
 				public void handleMessage(PaymentEvent event, Object object) {
