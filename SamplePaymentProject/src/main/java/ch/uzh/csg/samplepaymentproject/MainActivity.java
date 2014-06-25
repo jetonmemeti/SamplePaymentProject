@@ -1,12 +1,20 @@
 package ch.uzh.csg.samplepaymentproject;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Random;
 import java.util.UUID;
 
 import org.spongycastle.jce.ECNamedCurveTable;
@@ -24,6 +32,7 @@ import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,6 +49,7 @@ import ch.uzh.csg.mbps.customserialization.ServerResponseStatus;
 import ch.uzh.csg.mbps.customserialization.exceptions.UnknownPKIAlgorithmException;
 import ch.uzh.csg.nfclib.NfcLibException;
 import ch.uzh.csg.nfclib.Utils;
+import ch.uzh.csg.paymentlib.Answer;
 import ch.uzh.csg.paymentlib.IPaymentEventHandler;
 import ch.uzh.csg.paymentlib.IServerResponseListener;
 import ch.uzh.csg.paymentlib.IUserPromptPaymentRequest;
@@ -61,11 +71,16 @@ import ch.uzh.csg.paymentlib.persistency.PersistedPaymentRequest;
  * 
  */
 public class MainActivity extends Activity {
+	
+	String publicKey = "MFowFAYHKoZIzj0CAQYJKyQDAwIIAQEHA0IABBPPH9M9blbhfZNSujH4LoBsml7yoyqBwyw5+MRLFWqzMLuPDaTQQdPzuY4f9JBF7qGtQeQ4K6d+lcCNjmknPSQ=";
+	String privateKey = "MIGVAgEAMBQGByqGSM49AgEGCSskAwMCCAEBBwR6MHgCAQEEIEf5xuzP91nvSKpnOMZMncjOe1r6ZEqTKgNNWOuFBTo2oAsGCSskAwMCCAEBB6FEA0IABBPPH9M9blbhfZNSujH4LoBsml7yoyqBwyw5+MRLFWqzMLuPDaTQQdPzuY4f9JBF7qGtQeQ4K6d+lcCNjmknPSQ=";
 
 	protected static final String PREF_UNIQUE_ID = "pref_unique_id";
 	private static String uniqueID;
 
 	private static final String TAG = "##NFC## MainActivity";
+	
+	private boolean paymentAccepted = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -74,8 +89,16 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		try {
-			final KeyPair keyPairServer = generateKeyPair(42);
+			
+			final KeyPair keyPairServer = new KeyPair(decodePublicKey(publicKey), decodePrivateKey(privateKey));
+			//final KeyPair keyPairServer = generateKeyPair();
+			
 			final ServerInfos serverInfos = new ServerInfos(keyPairServer.getPublic());
+			
+			final Button acceptButton = (Button) findViewById(R.id.button2);
+			acceptButton.setEnabled(false);
+			final Button rejectButton = (Button) findViewById(R.id.button3);
+			rejectButton.setEnabled(false);
 			
 			final IPaymentEventHandler eventHandler = new IPaymentEventHandler() {
 
@@ -87,30 +110,46 @@ public class MainActivity extends Activity {
 				@Override
                 public void handleMessage(PaymentEvent event, Object object, IServerResponseListener caller) {
 					Log.i(TAG, "evt2:" + event + " obj:" + object);
-					if (event == PaymentEvent.FORWARD_TO_SERVER) {
+					
+					switch (event) {
+					case ERROR:
+						break;
+					case FORWARD_TO_SERVER:
+						
 						try {
 							ServerPaymentRequest decode = DecoderFactory.decode(ServerPaymentRequest.class,
-							        (byte[]) object);
+									(byte[]) object);
 							PaymentRequest paymentRequestPayer = decode.getPaymentRequestPayer();
-
+							
 							PaymentResponse pr = new PaymentResponse(PKIAlgorithm.DEFAULT, 1,
-							        ServerResponseStatus.SUCCESS, null, paymentRequestPayer.getUsernamePayer(),
-							        paymentRequestPayer.getUsernamePayee(), paymentRequestPayer.getCurrency(),
-							        paymentRequestPayer.getAmount(), paymentRequestPayer.getTimestamp());
+									ServerResponseStatus.SUCCESS, null, paymentRequestPayer.getUsernamePayer(),
+									paymentRequestPayer.getUsernamePayee(), paymentRequestPayer.getCurrency(),
+									paymentRequestPayer.getAmount(), paymentRequestPayer.getTimestamp());
 							pr.sign(keyPairServer.getPrivate());
 							ServerPaymentResponse spr = new ServerPaymentResponse(pr);
 							caller.onServerResponse(spr);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
+						break;
+					case NO_SERVER_RESPONSE:
+						break;
+					case SUCCESS:
+						break;
 					}
-					
-	                
                 }
 			};
 			String userName = id(getApplicationContext());
 
 			final KeyPair keyPair = generateKeyPair();
+			
+			//byte[] tmp1 = Base64.encode(keyPair.getPublic().getEncoded(), Base64.DEFAULT);
+			//byte[] tmp2 = Base64.encode(keyPair.getPrivate().getEncoded(), Base64.DEFAULT);
+			
+			//System.err.println(new String(tmp1));
+			//System.err.println(new String(tmp2));
+			
+			System.err.println("keypair: "+keyPair.getPublic());
 
 			final UserInfos userInfos = new UserInfos(userName, keyPair.getPrivate(), PKIAlgorithm.DEFAULT, 1);
 
@@ -146,14 +185,18 @@ public class MainActivity extends Activity {
 				@Override
 				public boolean isPaymentAccepted() {
 					Log.i(TAG, "payment accepted");
-					return true;
+					return paymentAccepted;
 				}
 
 				@Override
-				public boolean getPaymentRequestAnswer(String username, Currency currency, long amount) {
+                public void promptUserPaymentRequest(String username, Currency currency, long amount, Answer answer) {
+					acceptButton.setEnabled(true);
+					rejectButton.setEnabled(true);
 					Log.i(TAG, "user " + username + " wants " + amount);
-					return true;
-				}
+		            showCustomDialog(username, currency, amount, answer);
+                }
+
+				
 			};
 
 			final IPersistencyHandler persistencyHandler = new IPersistencyHandler() {
@@ -186,6 +229,27 @@ public class MainActivity extends Activity {
 		}
 
 	}
+
+	private void showCustomDialog(String username, Currency currency, long amount, final Answer answer2) {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		// Add the buttons
+		builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		        	   paymentAccepted = true;
+		               answer2.success();
+		           }
+		       });
+		builder.setNegativeButton("Reject", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		        	   paymentAccepted = false;
+		               answer2.failed();
+		           }
+		       });
+		// Create the AlertDialog
+		AlertDialog dialog = builder.create();
+        
+    }
+	
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -280,20 +344,7 @@ public class MainActivity extends Activity {
 	
 	public static KeyPair generateKeyPair() throws UnknownPKIAlgorithmException, NoSuchAlgorithmException,
     	NoSuchProviderException, InvalidAlgorithmParameterException {
-			return generateKeyPair(PKIAlgorithm.DEFAULT, 0);
-	}
-
-	/**
-	 * Generates a KeyPair with the default {@link PKIAlgorithm}.
-	 * 
-	 * @throws UnknownPKIAlgorithmException
-	 * @throws NoSuchAlgorithmException
-	 * @throws NoSuchProviderException
-	 * @throws InvalidAlgorithmParameterException
-	 */
-	public static KeyPair generateKeyPair(long seed) throws UnknownPKIAlgorithmException, NoSuchAlgorithmException,
-	        NoSuchProviderException, InvalidAlgorithmParameterException {
-		return generateKeyPair(PKIAlgorithm.DEFAULT, seed);
+			return generateKeyPair(PKIAlgorithm.DEFAULT);
 	}
 
 	/**
@@ -306,18 +357,82 @@ public class MainActivity extends Activity {
 	 * @throws NoSuchProviderException
 	 * @throws InvalidAlgorithmParameterException
 	 */
-	public static KeyPair generateKeyPair(PKIAlgorithm algorithm, long seed) throws UnknownPKIAlgorithmException,
+	public static KeyPair generateKeyPair(PKIAlgorithm algorithm) throws UnknownPKIAlgorithmException,
 	        NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
 		if (algorithm.getCode() != PKIAlgorithm.DEFAULT.getCode())
 			throw new UnknownPKIAlgorithmException();
 
 		ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(algorithm.getKeyPairSpecification());
 		KeyPairGenerator keyGen = KeyPairGenerator.getInstance(algorithm.getKeyPairAlgorithm(), SECURITY_PROVIDER);
-		if(seed != 0) {
-			keyGen.initialize(ecSpec, new SecureRandom());
-		} else {
-			keyGen.initialize(ecSpec, new SecureRandom(Utils.longToByteArray(seed)));
-		}
+		keyGen.initialize(ecSpec, new SecureRandom());
 		return keyGen.generateKeyPair();
+	}
+	
+	public static PublicKey decodePublicKey(String publicKeyEncoded) throws UnknownPKIAlgorithmException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		return decodePublicKey(publicKeyEncoded, PKIAlgorithm.DEFAULT);
+	}
+
+	/**
+	 * Decodes the given Base64 encoded String into a PublicKey, using the
+	 * provided {@link PKIAlgorithm}.
+	 * 
+	 * @param publicKeyEncoded
+	 *            the string to be decoded
+	 * @param algorithm
+	 *            the {@link PKIAlgorithm} to be used to generate the PublicKey
+	 * @throws UnknownPKIAlgorithmException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchProviderException
+	 * @throws InvalidKeySpecException
+	 */
+	public static PublicKey decodePublicKey(String publicKeyEncoded, PKIAlgorithm algorithm) throws UnknownPKIAlgorithmException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		if (algorithm.getCode() != PKIAlgorithm.DEFAULT.getCode())
+			throw new UnknownPKIAlgorithmException();
+		
+		byte[] decoded = Base64.decode(publicKeyEncoded.getBytes(), Base64.DEFAULT);
+		EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(decoded);
+		
+		KeyFactory keyFactory = KeyFactory.getInstance(algorithm.getKeyPairAlgorithm(), SECURITY_PROVIDER);
+		return keyFactory.generatePublic(publicKeySpec);
+	}
+	
+	/**
+	 * Decodes the given Base64 encoded String into a PrivateKey, using the
+	 * default {@link PKIAlgorithm}.
+	 * 
+	 * @param privateKeyEncoded
+	 *            the string to be decoded
+	 * @throws UnknownPKIAlgorithmException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchProviderException
+	 * @throws InvalidKeySpecException
+	 */
+	public static PrivateKey decodePrivateKey(String privateKeyEncoded) throws UnknownPKIAlgorithmException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		return decodePrivateKey(privateKeyEncoded, PKIAlgorithm.DEFAULT);
+	}
+	
+	/**
+	 * Decodes the given Base64 encoded String into a PrivateKey, using the
+	 * provided {@link PKIAlgorithm}.
+	 * 
+	 * @param privateKeyEncoded
+	 *            the string to be decoded
+	 * @param algorithm
+	 *            the {@link PKIAlgorithm} to be used to generate the PublicKey
+	 * @return
+	 * @throws UnknownPKIAlgorithmException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchProviderException
+	 * @throws InvalidKeySpecException
+	 */
+	public static PrivateKey decodePrivateKey(String privateKeyEncoded, PKIAlgorithm algorithm) throws UnknownPKIAlgorithmException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+		if (algorithm.getCode() != PKIAlgorithm.DEFAULT.getCode())
+			throw new UnknownPKIAlgorithmException();
+		
+		byte[] decoded = Base64.decode(privateKeyEncoded.getBytes(), Base64.DEFAULT);
+		EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(decoded);
+		
+		KeyFactory keyFactory = KeyFactory.getInstance(algorithm.getKeyPairAlgorithm(), SECURITY_PROVIDER);
+		return keyFactory.generatePrivate(privateKeySpec);
 	}
 }
