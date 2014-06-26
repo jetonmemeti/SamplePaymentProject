@@ -56,7 +56,11 @@ public class MainActivity extends Activity {
 	
 	private KeyPair keyPairServer;
 	private AlertDialog userPromptDialog;
+	
+	private volatile boolean responseReady = false;
 	private boolean paymentAccepted = false;
+	
+	private PaymentRequestInitializer initializer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +90,12 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment REQUEST");
-						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.REQUEST_PAYMENT);
+						
+//						if (initializer != null) {
+//							initializer.
+//						}
+						
+						initializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.REQUEST_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -106,7 +115,7 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment SEND");
-						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.SEND_PAYMENT);
+						initializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.SEND_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -129,7 +138,7 @@ public class MainActivity extends Activity {
 		public void handleMessage(PaymentEvent event, Object object) {
 			Log.i(TAG, "evt1:" + event + " obj:" + object);
 			
-			if (userPromptDialog.isShowing()) {
+			if (userPromptDialog!= null && userPromptDialog.isShowing()) {
 				userPromptDialog.dismiss();
 			}
 			
@@ -182,11 +191,12 @@ public class MainActivity extends Activity {
 		@Override
         public void promptUserPaymentRequest(String username, Currency currency, long amount, Answer answer) {
 			Log.i(TAG, "user " + username + " wants " + amount);
-            showCustomDialog(username, currency, amount, answer);
+			showCustomDialog(username, currency, amount, answer);
         }
 		
 	};
 	
+	//TODO: implement this to have use case with removing for pressing button
 	private IPersistencyHandler persistencyHandler = new IPersistencyHandler() {
 
 		@Override
@@ -208,25 +218,31 @@ public class MainActivity extends Activity {
 	};
 
 	private void showCustomDialog(String username, Currency currency, long amount, final Answer answer2) {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Incoming Payment Request")
 			.setMessage("Do you want to pay "+amount+" "+currency.getCurrencyCode()+" to "+username+"?")
 			.setCancelable(false)
 			.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
+		        	   responseReady = true;
 		        	   paymentAccepted = true;
 		               answer2.success();
 		           }
 		       })
 		     .setNegativeButton("Reject", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
+		        	   responseReady = true;
 		        	   paymentAccepted = false;
 		               answer2.failed();
 		           }
 		       });
-		// Create the AlertDialog
-		userPromptDialog = builder.create();
-		userPromptDialog.show();
+		
+		runOnUiThread(new Runnable() {
+		    public void run() {
+		    	userPromptDialog = builder.create();
+				userPromptDialog.show();
+		    }
+		});
     }
 	
 	private void showSuccessDialog(Object object) {
@@ -240,7 +256,7 @@ public class MainActivity extends Activity {
 			msg = "payed "+pr.getAmount() +" "+pr.getCurrency().getCurrencyCode()+" to "+pr.getUsernamePayee();
 		}
 		
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Payment Success!")
 			.setMessage(msg)
 			.setCancelable(true)
@@ -249,8 +265,15 @@ public class MainActivity extends Activity {
 		                dialog.cancel();
 		           }
 		       });
-		AlertDialog alert = builder.create();
-		alert.show();
+		
+		runOnUiThread(new Runnable() {
+		    public void run() {
+		    	AlertDialog alert = builder.create();
+				alert.show();
+		    }
+		});
+		
+		
 	}
 	
 	@Override
