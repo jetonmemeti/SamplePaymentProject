@@ -10,43 +10,42 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
+        <TextView
+            android:id="@+id/TextView01"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="50dp"
+            android:text="@string/receiveBTC" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/button1"
+            android:layout_marginTop="32dp"
+            android:text="@string/sendBTC" />
+        
         <Button
             android:id="@+id/button1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBaseline="@+id/TextView01"
             android:layout_alignBottom="@+id/TextView01"
-            android:layout_marginLeft="65dp"
-            android:layout_toRightOf="@+id/TextView01"
-            android:text="Send" />
-
-        <TextView
-            android:id="@+id/TextView01"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true"
-            android:text="@string/receiveBTC" />
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="68dp"
+            android:text="@string/receiveButton" />
 
         <Button
             android:id="@+id/button2"
-            style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/button1"
-            android:layout_marginLeft="32dp"
-            android:layout_marginTop="61dp"
-            android:text="Accept" />
-
-        <Button
-            android:id="@+id/button3"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/button2"
-            android:layout_centerHorizontal="true"
-            android:text="Reject" />
+            android:layout_alignBaseline="@+id/textView1"
+            android:layout_alignBottom="@+id/textView1"
+            android:layout_alignLeft="@+id/button1"
+            android:text="@string/sendButton" />
 
     </RelativeLayout>
 
