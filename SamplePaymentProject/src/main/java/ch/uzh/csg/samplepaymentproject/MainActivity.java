@@ -57,10 +57,11 @@ public class MainActivity extends Activity {
 	private KeyPair keyPairServer;
 	private AlertDialog userPromptDialog;
 	
-	private volatile boolean responseReady = false;
 	private boolean paymentAccepted = false;
 	
 	private PaymentRequestInitializer initializer;
+	
+	//TODO jeton: add waiting for reconnect dialog? offer 'abort' button?
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -90,10 +91,6 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment REQUEST");
-						
-//						if (initializer != null) {
-//							initializer.
-//						}
 						
 						initializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.REQUEST_PAYMENT);
 					} catch (IllegalArgumentException e) {
@@ -138,7 +135,7 @@ public class MainActivity extends Activity {
 		public void handleMessage(PaymentEvent event, Object object) {
 			Log.i(TAG, "evt1:" + event + " obj:" + object);
 			
-			if (userPromptDialog!= null && userPromptDialog.isShowing()) {
+			if (userPromptDialog != null && userPromptDialog.isShowing()) {
 				userPromptDialog.dismiss();
 			}
 			
@@ -156,8 +153,7 @@ public class MainActivity extends Activity {
 				break;
 			case FORWARD_TO_SERVER:
 				try {
-					ServerPaymentRequest decode = DecoderFactory.decode(ServerPaymentRequest.class,
-							(byte[]) object);
+					ServerPaymentRequest decode = DecoderFactory.decode(ServerPaymentRequest.class, (byte[]) object);
 					PaymentRequest paymentRequestPayer = decode.getPaymentRequestPayer();
 					
 					PaymentResponse pr = new PaymentResponse(PKIAlgorithm.DEFAULT, 1,
@@ -196,7 +192,6 @@ public class MainActivity extends Activity {
 		
 	};
 	
-	//TODO: implement this to have use case with removing for pressing button
 	private IPersistencyHandler persistencyHandler = new IPersistencyHandler() {
 
 		@Override
@@ -224,14 +219,12 @@ public class MainActivity extends Activity {
 			.setCancelable(false)
 			.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
-		        	   responseReady = true;
 		        	   paymentAccepted = true;
 		               answer2.success();
 		           }
 		       })
 		     .setNegativeButton("Reject", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
-		        	   responseReady = true;
 		        	   paymentAccepted = false;
 		               answer2.failed();
 		           }
@@ -273,9 +266,13 @@ public class MainActivity extends Activity {
 		    }
 		});
 		
-		
+		resetStates();
 	}
 	
+	private void resetStates() {
+		paymentAccepted = false;
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
