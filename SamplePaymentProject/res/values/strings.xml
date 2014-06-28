@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SamplePaymentProject</string>
+    <string name="action_settings">Settings</string>
+    
+    <string name="enableNfcTransceiver">Enable NFC Transceiver</string>
+    <string name="enableHCE">Enable HCE</string>
+    
+    <string name="receiveBTC">Receive 5 BTC</string>
+    <string name="sendBTC">Send 5 BTC</string>
+    <string name="receiveButton">Request</string>
+    <string name="sendButton">Send</string>
+    
+    <!-- APDU SERVICE -->
+    <string name="aiddescription">ch.uzh.csg.nfclib</string>
+    <string name="servicedesc">Android KitKat NFC Library</string>
+    <string name="enable">Enable NFC</string>
+    <string name="togglebutton">Enable</string>
+    
+</resources>
