@@ -19,6 +19,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ToggleButton;
 import ch.uzh.csg.mbps.customserialization.Currency;
 import ch.uzh.csg.mbps.customserialization.DecoderFactory;
 import ch.uzh.csg.mbps.customserialization.PKIAlgorithm;
@@ -28,9 +31,9 @@ import ch.uzh.csg.mbps.customserialization.ServerPaymentRequest;
 import ch.uzh.csg.mbps.customserialization.ServerPaymentResponse;
 import ch.uzh.csg.mbps.customserialization.ServerResponseStatus;
 import ch.uzh.csg.nfclib.NfcLibException;
-import ch.uzh.csg.paymentlib.Answer;
 import ch.uzh.csg.paymentlib.IPaymentEventHandler;
 import ch.uzh.csg.paymentlib.IServerResponseListener;
+import ch.uzh.csg.paymentlib.IUserPromptAnswer;
 import ch.uzh.csg.paymentlib.IUserPromptPaymentRequest;
 import ch.uzh.csg.paymentlib.PaymentEvent;
 import ch.uzh.csg.paymentlib.PaymentRequestHandler;
@@ -59,7 +62,7 @@ public class MainActivity extends Activity {
 	
 	private boolean paymentAccepted = false;
 	
-	private PaymentRequestInitializer initializer;
+	//private PaymentRequestInitializer initializer;
 	
 	//TODO jeton: add waiting for reconnect dialog? offer 'abort' button?
 
@@ -92,7 +95,7 @@ public class MainActivity extends Activity {
 					try {
 						Log.i(TAG, "init payment REQUEST");
 						
-						initializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.REQUEST_PAYMENT);
+						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.REQUEST_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -112,12 +115,22 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment SEND");
-						initializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.SEND_PAYMENT);
+						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.SEND_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
 						e.printStackTrace();
 					}
+				}
+			});
+			
+			NfcAdapter adapter = createAdapter(MainActivity.this);
+			final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggleButton1);
+			toggleButton.setChecked(adapter.isEnabled());
+			toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+					enableNFC(MainActivity.this, isChecked);
 				}
 			});
 
@@ -127,6 +140,14 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	protected void onResume() {
+	    super.onResume();
+	    NfcAdapter adapter = createAdapter(MainActivity.this);
+		final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggleButton1);
+		toggleButton.setChecked(adapter.isEnabled());
 	}
 	
 	private IPaymentEventHandler eventHandler = new IPaymentEventHandler() {
@@ -142,6 +163,7 @@ public class MainActivity extends Activity {
 			if (event == PaymentEvent.SUCCESS) {
 				showSuccessDialog(object);
 			}
+			resetStates();
 		}
 
 		@Override
@@ -180,12 +202,12 @@ public class MainActivity extends Activity {
 
 		@Override
 		public boolean isPaymentAccepted() {
-			Log.i(TAG, "payment accepted");
+			Log.i(TAG, "payment accepted: "+paymentAccepted);
 			return paymentAccepted;
 		}
 
 		@Override
-        public void promptUserPaymentRequest(String username, Currency currency, long amount, Answer answer) {
+        public void promptUserPaymentRequest(String username, Currency currency, long amount, IUserPromptAnswer answer) {
 			Log.i(TAG, "user " + username + " wants " + amount);
 			showCustomDialog(username, currency, amount, answer);
         }
@@ -212,7 +234,7 @@ public class MainActivity extends Activity {
 		
 	};
 
-	private void showCustomDialog(String username, Currency currency, long amount, final Answer answer2) {
+	private void showCustomDialog(String username, Currency currency, long amount, final IUserPromptAnswer answer2) {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Incoming Payment Request")
 			.setMessage("Do you want to pay "+amount+" "+currency.getCurrencyCode()+" to "+username+"?")
@@ -220,13 +242,13 @@ public class MainActivity extends Activity {
 			.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
 		        	   paymentAccepted = true;
-		               answer2.success();
+		               answer2.acceptPayment();
 		           }
 		       })
 		     .setNegativeButton("Reject", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
 		        	   paymentAccepted = false;
-		               answer2.failed();
+		               answer2.rejectPayment();
 		           }
 		       });
 		
@@ -301,32 +323,6 @@ public class MainActivity extends Activity {
 	 */
 	private NfcAdapter createAdapter(Context context) {
 		NfcAdapter nfcAdapter = android.nfc.NfcAdapter.getDefaultAdapter(getApplicationContext());
-
-		if (!nfcAdapter.isEnabled()) {
-			AlertDialog.Builder alertbox = new AlertDialog.Builder(context);
-			alertbox.setTitle("Info");
-			alertbox.setMessage("Enable NFC");
-			alertbox.setPositiveButton("Turn On", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-						Intent intent = new Intent(Settings.ACTION_NFC_SETTINGS);
-						startActivity(intent);
-					} else {
-						Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-						startActivity(intent);
-					}
-				}
-			});
-			alertbox.setNegativeButton("Close", new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-
-				}
-			});
-			alertbox.show();
-			return null;
-		}
 		return nfcAdapter;
 	}
 
@@ -351,5 +347,60 @@ public class MainActivity extends Activity {
 		}
 		return uniqueID;
 	}
+	
+	/**
+	 * Create an NFC adapter, if NFC is enabled, return the adapter, otherwise
+	 * null and open up NFC settings.
+	 * 
+	 * This does not belong into the library. We should not handle UI stuff.
+	 * Handling this is up to the user including our library. May be he has a
+	 * custom layout he wants to build the AlertDialog. Furthermore, there might
+	 * arise problems when the user comes back from the Settings view if
+	 * onCreate is not implemented appropriately.
+	 * 
+	 * @param context
+	 * @return
+	 */
+	private void enableNFC(final Activity activity, final boolean enable) {
+		NfcAdapter nfcAdapter = android.nfc.NfcAdapter.getDefaultAdapter(activity);
 
+		if (nfcAdapter == null) {
+			return;
+		}
+		final String m1;
+		final String m2;
+		if (!nfcAdapter.isEnabled() && enable) {
+			m1 = "Enable NFC";
+			m2 = "Turn On";
+		} else if (nfcAdapter.isEnabled() && !enable) {
+			m1 = "Disable NFC";
+			m2 = "Turn Off";
+		} else {
+			return;
+		}
+		
+		final AlertDialog.Builder alertbox = new AlertDialog.Builder(this);
+		alertbox.setTitle("Info");
+		alertbox.setMessage(m1);
+		alertbox.setPositiveButton(m2, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+					Intent intent = new Intent(Settings.ACTION_NFC_SETTINGS);
+					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					activity.getApplicationContext().startActivity(intent);
+				} else {
+					Intent intent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					activity.getApplicationContext().startActivity(intent);
+				}
+			}
+		});
+		alertbox.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				}
+		});
+		alertbox.show();
+	}
 }

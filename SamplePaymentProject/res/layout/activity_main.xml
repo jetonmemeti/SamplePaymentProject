@@ -47,6 +47,23 @@
             android:layout_alignLeft="@+id/button1"
             android:text="@string/sendButton" />
 
+        <TextView
+            android:id="@+id/TextView02"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/button2"
+            android:layout_marginTop="19dp"
+            android:text="@string/enable" />
+
+        <ToggleButton
+            android:id="@+id/toggleButton1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/button2"
+            android:layout_alignTop="@+id/TextView02"
+            android:text="@string/togglebutton" />
+
     </RelativeLayout>
 
 </FrameLayout>

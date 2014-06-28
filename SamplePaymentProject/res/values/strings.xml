@@ -15,5 +15,7 @@
     <!-- APDU SERVICE -->
     <string name="aiddescription">ch.uzh.csg.nfclib</string>
     <string name="servicedesc">Android KitKat NFC Library</string>
+    <string name="enable">Enable NFC</string>
+    <string name="togglebutton">Enable</string>
     
 </resources>
