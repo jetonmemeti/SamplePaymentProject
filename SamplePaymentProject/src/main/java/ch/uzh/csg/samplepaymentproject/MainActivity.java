@@ -124,13 +124,25 @@ public class MainActivity extends Activity {
 				}
 			});
 			
-			NfcAdapter adapter = createAdapter(MainActivity.this);
-			final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggleButton1);
-			toggleButton.setChecked(adapter.isEnabled());
-			toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			final NfcAdapter adapter = createAdapter(MainActivity.this);
+			final ToggleButton toggleButton1 = (ToggleButton) findViewById(R.id.toggleButton1);
+			toggleButton1.setChecked(adapter.isEnabled());
+			toggleButton1.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 				@Override
 				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 					enableNFC(MainActivity.this, isChecked);
+				}
+			});
+			
+			final ToggleButton toggleButton2 = (ToggleButton) findViewById(R.id.toggleButton2);
+			toggleButton2.setChecked(adapter.isNdefPushEnabled());
+			toggleButton2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+					if(!isChecked) {
+						adapter.disableForegroundDispatch(MainActivity.this);
+						adapter.disableForegroundNdefPush(MainActivity.this);
+					}
 				}
 			});
 
