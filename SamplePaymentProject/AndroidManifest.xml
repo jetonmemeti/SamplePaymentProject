@@ -30,7 +30,7 @@
         </activity>
 
         <service
-            android:name="ch.uzh.csg.nfclib.HostApduServiceMBPS"
+            android:name="ch.uzh.csg.nfclib.HostApduServiceNfcLib"
             android:exported="true"
             android:permission="android.permission.BIND_NFC_SERVICE" >
             <intent-filter>
