@@ -43,8 +43,6 @@ import ch.uzh.csg.paymentlib.container.PaymentInfos;
 import ch.uzh.csg.paymentlib.container.ServerInfos;
 import ch.uzh.csg.paymentlib.container.UserInfos;
 import ch.uzh.csg.paymentlib.exceptions.IllegalArgumentException;
-import ch.uzh.csg.paymentlib.persistency.IPersistencyHandler;
-import ch.uzh.csg.paymentlib.persistency.PersistedPaymentRequest;
 
 //TODO: javadoc
 public class MainActivity extends Activity {
