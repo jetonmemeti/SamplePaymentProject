@@ -60,6 +60,8 @@ public class MainActivity extends Activity {
 	private KeyPair keyPairServer;
 	private AlertDialog userPromptDialog;
 	
+	private PersistencyHandler persistencyHandler;
+	
 	private boolean paymentAccepted = false;
 	
 	//private PaymentRequestInitializer initializer;
@@ -72,6 +74,8 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		persistencyHandler = new PersistencyHandler();
+		
 		try {
 			keyPairServer = new KeyPair(KeyHandler.decodePublicKey(publicKey), KeyHandler.decodePrivateKey(privateKey));
 			
@@ -94,8 +98,7 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment REQUEST");
-						
-						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.REQUEST_PAYMENT);
+						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.REQUEST_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -115,7 +118,7 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment SEND");
-						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, PaymentType.SEND_PAYMENT);
+						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.SEND_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -226,26 +229,6 @@ public class MainActivity extends Activity {
 		
 	};
 	
-	private IPersistencyHandler persistencyHandler = new IPersistencyHandler() {
-
-		@Override
-		public PersistedPaymentRequest getPersistedPaymentRequest(String username, Currency currency, long amount) {
-			Log.i(TAG, "getPersistedPaymentRequest");
-			return null;
-		}
-
-		@Override
-		public void delete(PersistedPaymentRequest paymentRequest) {
-			Log.i(TAG, "delete");
-		}
-
-		@Override
-		public void add(PersistedPaymentRequest paymentRequest) {
-			Log.i(TAG, "add");
-		}
-		
-	};
-
 	private void showCustomDialog(String username, Currency currency, long amount, final IUserPromptAnswer answer2) {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Incoming Payment Request")
