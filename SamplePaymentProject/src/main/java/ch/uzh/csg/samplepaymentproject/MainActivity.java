@@ -166,22 +166,12 @@ public class MainActivity extends Activity {
 	private IPaymentEventHandler eventHandler = new IPaymentEventHandler() {
 
 		@Override
-		public void handleMessage(PaymentEvent event, Object object) {
+        public void handleMessage(PaymentEvent event, Object object, IServerResponseListener caller) {
 			Log.i(TAG, "evt1:" + event + " obj:" + object);
 			
 			if (userPromptDialog != null && userPromptDialog.isShowing()) {
 				userPromptDialog.dismiss();
 			}
-			
-			if (event == PaymentEvent.SUCCESS) {
-				showSuccessDialog(object);
-			}
-			resetStates();
-		}
-
-		@Override
-        public void handleMessage(PaymentEvent event, Object object, IServerResponseListener caller) {
-			Log.i(TAG, "evt2:" + event + " obj:" + object);
 			
 			switch (event) {
 			case ERROR:
@@ -205,8 +195,11 @@ public class MainActivity extends Activity {
 			case NO_SERVER_RESPONSE:
 				break;
 			case SUCCESS:
+				showSuccessDialog(object);
 				break;
 			}
+			
+			resetStates();
         }
 		
 	};
@@ -396,4 +389,5 @@ public class MainActivity extends Activity {
 		});
 		alertbox.show();
 	}
+	
 }
