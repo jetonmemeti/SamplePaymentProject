@@ -174,6 +174,8 @@ public class MainActivity extends Activity {
 			}
 			
 			switch (event) {
+			case INITIALIZED:
+				break;
 			case ERROR:
 				break;
 			case FORWARD_TO_SERVER:
@@ -191,8 +193,6 @@ public class MainActivity extends Activity {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				break;
-			case NO_SERVER_RESPONSE:
 				break;
 			case SUCCESS:
 				showSuccessDialog(object);
