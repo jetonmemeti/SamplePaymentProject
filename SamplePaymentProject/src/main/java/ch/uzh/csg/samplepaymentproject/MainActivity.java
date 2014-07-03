@@ -43,6 +43,7 @@ import ch.uzh.csg.paymentlib.container.PaymentInfos;
 import ch.uzh.csg.paymentlib.container.ServerInfos;
 import ch.uzh.csg.paymentlib.container.UserInfos;
 import ch.uzh.csg.paymentlib.exceptions.IllegalArgumentException;
+import ch.uzh.csg.paymentlib.messages.PaymentError;
 
 //TODO: javadoc
 public class MainActivity extends Activity {
@@ -61,8 +62,6 @@ public class MainActivity extends Activity {
 	private PersistencyHandler persistencyHandler;
 	
 	private boolean paymentAccepted = false;
-	
-	//private PaymentRequestInitializer initializer;
 	
 	//TODO jeton: add waiting for reconnect dialog? offer 'abort' button?
 
@@ -135,6 +134,7 @@ public class MainActivity extends Activity {
 				}
 			});
 			
+			//TODO: is this needed?
 			final ToggleButton toggleButton2 = (ToggleButton) findViewById(R.id.toggleButton2);
 			toggleButton2.setChecked(adapter.isNdefPushEnabled());
 			toggleButton2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
@@ -149,7 +149,6 @@ public class MainActivity extends Activity {
 
 			new PaymentRequestHandler(this, eventHandler, userInfos, serverInfos, userPrompt, persistencyHandler);
 			Log.i(TAG, "payment handler initilazied");
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -177,6 +176,7 @@ public class MainActivity extends Activity {
 			case INITIALIZED:
 				break;
 			case ERROR:
+				showErrorDialog(object);
 				break;
 			case FORWARD_TO_SERVER:
 				try {
@@ -198,8 +198,6 @@ public class MainActivity extends Activity {
 				showSuccessDialog(object);
 				break;
 			}
-			
-			resetStates();
         }
 		
 	};
@@ -246,6 +244,39 @@ public class MainActivity extends Activity {
 		});
     }
 	
+	private void showErrorDialog(Object object) {
+		String msg;
+		if (object == null) {
+			msg = "object is null";
+		} else if (!(object instanceof PaymentError)) {
+			msg = "object is not instance of PaymentResponse";
+		} else {
+			PaymentError err = (PaymentError) object;
+			msg = err.name();
+			//TODO: ?
+//			switch (err) {
+//			case DUPLICATE_REQUEST:
+//				break;
+//			case NO_SERVER_RESPONSE:
+//				break;
+//			case PAYER_REFUSED:
+//				break;
+//			case REQUESTS_NOT_IDENTIC:
+//				break;
+//			case SERVER_REFUSED:
+//				break;
+//			case UNEXPECTED_ERROR:
+//				break;
+//			default:
+//				break;
+//			}
+		}
+		
+		showDialog("Error", msg);
+		
+		resetStates();
+	}
+	
 	private void showSuccessDialog(Object object) {
 		String msg;
 		if (object == null) {
@@ -257,9 +288,14 @@ public class MainActivity extends Activity {
 			msg = "payed "+pr.getAmount() +" "+pr.getCurrency().getCurrencyCode()+" to "+pr.getUsernamePayee();
 		}
 		
+		showDialog("Payment Success!", msg);
+		resetStates();
+	}
+	
+	private void showDialog(String title, String message) {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Payment Success!")
-			.setMessage(msg)
+		builder.setTitle(title)
+			.setMessage(message)
 			.setCancelable(true)
 			.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
@@ -273,8 +309,6 @@ public class MainActivity extends Activity {
 				alert.show();
 		    }
 		});
-		
-		resetStates();
 	}
 	
 	private void resetStates() {
