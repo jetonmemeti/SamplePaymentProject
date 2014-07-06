@@ -372,12 +372,6 @@ public class MainActivity extends Activity {
 	 * Create an NFC adapter, if NFC is enabled, return the adapter, otherwise
 	 * null and open up NFC settings.
 	 * 
-	 * This does not belong into the library. We should not handle UI stuff.
-	 * Handling this is up to the user including our library. May be he has a
-	 * custom layout he wants to build the AlertDialog. Furthermore, there might
-	 * arise problems when the user comes back from the Settings view if
-	 * onCreate is not implemented appropriately.
-	 * 
 	 * @param context
 	 * @return
 	 */
