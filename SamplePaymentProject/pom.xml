@@ -15,12 +15,6 @@
 	<dependencies>
 	      
 	    <dependency>
-  			<groupId>com.acs.smartcard</groupId>
-  			<artifactId>acssmc</artifactId>
-  			<version>1.1.1</version>
-		</dependency>
-		
-	    <dependency>
 			<groupId>ch.uzh.csg</groupId>
 			<artifactId>nfcpaymentlib</artifactId>
 			<version>0.1.0</version>
