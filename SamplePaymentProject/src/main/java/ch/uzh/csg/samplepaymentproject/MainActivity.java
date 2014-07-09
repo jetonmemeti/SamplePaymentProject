@@ -134,18 +134,8 @@ public class MainActivity extends Activity {
 				}
 			});
 			
-			//TODO: is this needed?
-			final ToggleButton toggleButton2 = (ToggleButton) findViewById(R.id.toggleButton2);
-			toggleButton2.setChecked(adapter.isNdefPushEnabled());
-			toggleButton2.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-				@Override
-				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-					if(!isChecked) {
-						adapter.disableForegroundDispatch(MainActivity.this);
-						adapter.disableForegroundNdefPush(MainActivity.this);
-					}
-				}
-			});
+			//disable android beam (touch to beam screen)
+			adapter.setNdefPushMessage(null, this, this);
 
 			new PaymentRequestHandler(this, eventHandler, userInfos, serverInfos, userPrompt, persistencyHandler);
 			Log.i(TAG, "payment handler initilazied");

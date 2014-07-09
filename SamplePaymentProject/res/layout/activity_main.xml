@@ -64,22 +64,6 @@
             android:layout_alignTop="@+id/TextView02"
             android:text="@string/togglebutton" />
 
-        <TextView
-            android:id="@+id/TextView03"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/toggleButton1"
-            android:text="@string/enablePush" />
-
-        <ToggleButton
-            android:id="@+id/toggleButton2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/toggleButton1"
-            android:layout_alignTop="@+id/TextView03"
-            android:text="@string/togglebutton" />
-
     </RelativeLayout>
 
 </FrameLayout>
