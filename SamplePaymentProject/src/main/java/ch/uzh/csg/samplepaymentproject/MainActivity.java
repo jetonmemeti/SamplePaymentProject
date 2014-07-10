@@ -45,7 +45,6 @@ import ch.uzh.csg.paymentlib.container.UserInfos;
 import ch.uzh.csg.paymentlib.exceptions.IllegalArgumentException;
 import ch.uzh.csg.paymentlib.messages.PaymentError;
 
-//TODO: javadoc
 public class MainActivity extends Activity {
 	
 	String publicKey = "MFowFAYHKoZIzj0CAQYJKyQDAwIIAQEHA0IABBPPH9M9blbhfZNSujH4LoBsml7yoyqBwyw5+MRLFWqzMLuPDaTQQdPzuY4f9JBF7qGtQeQ4K6d+lcCNjmknPSQ=";
@@ -62,9 +61,8 @@ public class MainActivity extends Activity {
 	private PersistencyHandler persistencyHandler;
 	
 	private boolean paymentAccepted = false;
+	private boolean autoAcceptEnabled = false;
 	
-	//TODO jeton: add waiting for reconnect dialog? offer 'abort' button?
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.i(TAG, "start");
@@ -134,6 +132,16 @@ public class MainActivity extends Activity {
 				}
 			});
 			
+			final ToggleButton autoAccept = (ToggleButton) findViewById(R.id.toggleButton2);
+			autoAccept.setChecked(true);
+			autoAcceptEnabled = true;
+			autoAccept.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+					autoAcceptEnabled = isChecked;
+				}
+			});
+			
 			//disable android beam (touch to beam screen)
 			adapter.setNdefPushMessage(null, this, this);
 
@@ -196,14 +204,23 @@ public class MainActivity extends Activity {
 
 		@Override
 		public boolean isPaymentAccepted() {
-			Log.i(TAG, "payment accepted: "+paymentAccepted);
-			return paymentAccepted;
+			if (autoAcceptEnabled) {
+				Log.i(TAG, "payment accepted (auto accept)");
+				return true;
+			} else {
+				Log.i(TAG, "payment accepted: "+paymentAccepted);
+				return paymentAccepted;
+			}
 		}
 
 		@Override
         public void promptUserPaymentRequest(String username, Currency currency, long amount, IUserPromptAnswer answer) {
 			Log.i(TAG, "user " + username + " wants " + amount);
-			showCustomDialog(username, currency, amount, answer);
+			if (autoAcceptEnabled) {
+				answer.acceptPayment();
+			} else {
+				showCustomDialog(username, currency, amount, answer);
+			}
         }
 		
 	};
@@ -243,23 +260,6 @@ public class MainActivity extends Activity {
 		} else {
 			PaymentError err = (PaymentError) object;
 			msg = err.name();
-			//TODO: ?
-//			switch (err) {
-//			case DUPLICATE_REQUEST:
-//				break;
-//			case NO_SERVER_RESPONSE:
-//				break;
-//			case PAYER_REFUSED:
-//				break;
-//			case REQUESTS_NOT_IDENTIC:
-//				break;
-//			case SERVER_REFUSED:
-//				break;
-//			case UNEXPECTED_ERROR:
-//				break;
-//			default:
-//				break;
-//			}
 		}
 		
 		showDialog("Error", msg);

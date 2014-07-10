@@ -64,6 +64,23 @@
             android:layout_alignTop="@+id/TextView02"
             android:text="@string/togglebutton" />
 
+        <ToggleButton
+            android:id="@+id/toggleButton2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/toggleButton1"
+            android:layout_below="@+id/toggleButton1"
+            android:text="@string/togglebutton" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/toggleButton2"
+            android:layout_alignBottom="@+id/toggleButton2"
+            android:layout_alignParentLeft="true"
+            android:text="@string/autoAcceptLabel" />
+
     </RelativeLayout>
 
 </FrameLayout>
