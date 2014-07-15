@@ -62,6 +62,7 @@ public class MainActivity extends Activity {
 	
 	private boolean paymentAccepted = false;
 	private boolean autoAcceptEnabled = false;
+	private boolean paying = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +94,7 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment REQUEST");
+						paying = false;
 						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.REQUEST_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
@@ -113,6 +115,7 @@ public class MainActivity extends Activity {
 					}
 					try {
 						Log.i(TAG, "init payment SEND");
+						paying = true;
 						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.SEND_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
@@ -204,6 +207,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public boolean isPaymentAccepted() {
+			paying = true;
 			if (autoAcceptEnabled) {
 				Log.i(TAG, "payment accepted (auto accept)");
 				return true;
@@ -216,6 +220,7 @@ public class MainActivity extends Activity {
 		@Override
         public void promptUserPaymentRequest(String username, Currency currency, long amount, IUserPromptAnswer answer) {
 			Log.i(TAG, "user " + username + " wants " + amount);
+			paying = true;
 			if (autoAcceptEnabled) {
 				answer.acceptPayment();
 			} else {
@@ -225,7 +230,7 @@ public class MainActivity extends Activity {
 		
 	};
 	
-	private void showCustomDialog(String username, Currency currency, long amount, final IUserPromptAnswer answer2) {
+	private void showCustomDialog(String username, Currency currency, long amount, final IUserPromptAnswer answer) {
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Incoming Payment Request")
 			.setMessage("Do you want to pay "+amount+" "+currency.getCurrencyCode()+" to "+username+"?")
@@ -233,13 +238,13 @@ public class MainActivity extends Activity {
 			.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
 		        	   paymentAccepted = true;
-		               answer2.acceptPayment();
+		               answer.acceptPayment();
 		           }
 		       })
 		     .setNegativeButton("Reject", new DialogInterface.OnClickListener() {
 		           public void onClick(DialogInterface dialog, int id) {
 		        	   paymentAccepted = false;
-		               answer2.rejectPayment();
+		               answer.rejectPayment();
 		           }
 		       });
 		
@@ -275,7 +280,10 @@ public class MainActivity extends Activity {
 			msg = "object is not instance of PaymentResponse";
 		} else {
 			PaymentResponse pr = (PaymentResponse) object;
-			msg = "payed "+pr.getAmount() +" "+pr.getCurrency().getCurrencyCode()+" to "+pr.getUsernamePayee();
+			if (paying)
+				msg = "payed "+pr.getAmount() +" "+pr.getCurrency().getCurrencyCode()+" to "+pr.getUsernamePayee();
+			else
+				msg = "received "+pr.getAmount() +" "+pr.getCurrency().getCurrencyCode()+" from "+pr.getUsernamePayee();
 		}
 		
 		showDialog("Payment Success!", msg);
@@ -303,6 +311,7 @@ public class MainActivity extends Activity {
 	
 	private void resetStates() {
 		paymentAccepted = false;
+		paying = false;
 	}
 
 	@Override
