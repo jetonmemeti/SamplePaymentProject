@@ -264,7 +264,11 @@ public class MainActivity extends Activity {
 			msg = "object is not instance of PaymentResponse";
 		} else {
 			PaymentError err = (PaymentError) object;
-			msg = err.name();
+			
+			if (err == PaymentError.NO_SERVER_RESPONSE)
+				msg = "Please check your transaction history on the server before you proceed! You did not receive any response from the server, but it might be that the server booked the transaction.";
+			else
+				msg = err.name();
 		}
 		
 		showDialog("Error", msg);
