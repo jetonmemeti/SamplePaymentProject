@@ -58,6 +58,11 @@ public class MainActivity extends Activity {
 	private KeyPair keyPairServer;
 	private AlertDialog userPromptDialog;
 	
+	private UserInfos userInfos;
+	private PaymentInfos paymentInfos;
+	private ServerInfos serverInfos;
+	
+	private PaymentRequestInitializer paymentRequestInitializer;
 	private PersistencyHandler persistencyHandler;
 	
 	private boolean paymentAccepted = false;
@@ -75,13 +80,13 @@ public class MainActivity extends Activity {
 		try {
 			keyPairServer = new KeyPair(KeyHandler.decodePublicKey(publicKey), KeyHandler.decodePrivateKey(privateKey));
 			
-			final ServerInfos serverInfos = new ServerInfos(keyPairServer.getPublic());
+			serverInfos = new ServerInfos(keyPairServer.getPublic());
 			
 			String userName = id(getApplicationContext());
 
 			final KeyPair keyPair = KeyHandler.generateKeyPair();
-			final UserInfos userInfos = new UserInfos(userName, keyPair.getPrivate(), PKIAlgorithm.DEFAULT, 1);
-			final PaymentInfos paymentInfos = new PaymentInfos(Currency.BTC, 5);
+			userInfos = new UserInfos(userName, keyPair.getPrivate(), PKIAlgorithm.DEFAULT, 1);
+			paymentInfos = new PaymentInfos(Currency.BTC, 5);
 
 			Button requestButton = (Button) findViewById(R.id.button1);
 			requestButton.setOnClickListener(new View.OnClickListener() {
@@ -95,7 +100,7 @@ public class MainActivity extends Activity {
 					try {
 						Log.i(TAG, "init payment REQUEST");
 						paying = false;
-						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.REQUEST_PAYMENT);
+						paymentRequestInitializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.REQUEST_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -116,7 +121,7 @@ public class MainActivity extends Activity {
 					try {
 						Log.i(TAG, "init payment SEND");
 						paying = true;
-						new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.SEND_PAYMENT);
+						paymentRequestInitializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.SEND_PAYMENT);
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -144,12 +149,6 @@ public class MainActivity extends Activity {
 					autoAcceptEnabled = isChecked;
 				}
 			});
-			
-			//disable android beam (touch to beam screen)
-			adapter.setNdefPushMessage(null, this, this);
-
-			new PaymentRequestHandler(this, eventHandler, userInfos, serverInfos, userPrompt, persistencyHandler);
-			Log.i(TAG, "payment handler initilazied");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -161,7 +160,26 @@ public class MainActivity extends Activity {
 	    NfcAdapter adapter = createAdapter(MainActivity.this);
 		final ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggleButton1);
 		toggleButton.setChecked(adapter.isEnabled());
+		
+		//disable android beam (touch to beam screen)
+		adapter.setNdefPushMessage(null, this, this);
+		
+		try {
+			new PaymentRequestHandler(this, eventHandler, userInfos, serverInfos, userPrompt, persistencyHandler);
+			Log.i(TAG, "payment handler initilazied");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (paymentRequestInitializer != null) {
+			paymentRequestInitializer.disable();
+			paymentRequestInitializer = null;
+		}
+	};
 	
 	private IPaymentEventHandler eventHandler = new IPaymentEventHandler() {
 
