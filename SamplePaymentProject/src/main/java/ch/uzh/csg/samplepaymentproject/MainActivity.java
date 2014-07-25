@@ -100,7 +100,12 @@ public class MainActivity extends Activity {
 					try {
 						Log.i(TAG, "init payment REQUEST");
 						paying = false;
+						if (paymentRequestInitializer != null) {
+							paymentRequestInitializer.disable();
+							paymentRequestInitializer = null;
+						}
 						paymentRequestInitializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.REQUEST_PAYMENT);
+						paymentRequestInitializer.enableNfc();
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -121,7 +126,12 @@ public class MainActivity extends Activity {
 					try {
 						Log.i(TAG, "init payment SEND");
 						paying = true;
+						if (paymentRequestInitializer != null) {
+							paymentRequestInitializer.disable(); 
+							paymentRequestInitializer = null;
+						}
 						paymentRequestInitializer = new PaymentRequestInitializer(MainActivity.this, eventHandler, userInfos, paymentInfos, serverInfos, persistencyHandler, PaymentType.SEND_PAYMENT);
+						paymentRequestInitializer.enableNfc();
 					} catch (IllegalArgumentException e) {
 						e.printStackTrace();
 					} catch (NfcLibException e) {
@@ -166,7 +176,7 @@ public class MainActivity extends Activity {
 		
 		try {
 			new PaymentRequestHandler(this, eventHandler, userInfos, serverInfos, userPrompt, persistencyHandler);
-			Log.i(TAG, "payment handler initilazied");
+			Log.i(TAG, "payment handler initilaized"); 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -214,6 +224,9 @@ public class MainActivity extends Activity {
 				}
 				break;
 			case SUCCESS:
+				if (paymentRequestInitializer != null)
+					paymentRequestInitializer.disableNfc(); 
+				
 				showSuccessDialog(object);
 				break;
 			}
@@ -333,7 +346,6 @@ public class MainActivity extends Activity {
 	
 	private void resetStates() {
 		paymentAccepted = false;
-		paying = false;
 	}
 
 	@Override
