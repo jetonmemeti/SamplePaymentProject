@@ -3,6 +3,7 @@ SamplePaymentProject
 
 This is a minimalistic sample project which shows how the <a href="https://github.com/jetonmemeti/android-nfc-payment-library">AndroidNFCPaymentLibrary</a> can be used.
 
+If you want to use the external <a href="http://www.acs.com.hk/en/products/3/acr122u-usb-nfc-reader/">ACR122u USB NFC Reader</a> instead of the device's internal/build-in NFC controller, assure that you have plugged in the ACR122u before clicking on "Send" or "Request". If the ACR122u is plugged in, it will automatically be used once the <code>PaymentRequestInitializer</code> is initialized.
 
 Prerequisites:
 --------------
