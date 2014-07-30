@@ -194,7 +194,7 @@ public class MainActivity extends Activity {
 	private IPaymentEventHandler eventHandler = new IPaymentEventHandler() {
 
 		@Override
-        public void handleMessage(PaymentEvent event, Object object, IServerResponseListener caller) {
+        public void handleMessage(PaymentEvent event, Object object, final IServerResponseListener caller) {
 			Log.i(TAG, "evt1:" + event + " obj:" + object);
 			
 			if (userPromptDialog != null && userPromptDialog.isShowing()) {
@@ -217,8 +217,22 @@ public class MainActivity extends Activity {
 							paymentRequestPayer.getUsernamePayee(), paymentRequestPayer.getCurrency(),
 							paymentRequestPayer.getAmount(), paymentRequestPayer.getTimestamp());
 					pr.sign(keyPairServer.getPrivate());
-					ServerPaymentResponse spr = new ServerPaymentResponse(pr);
-					caller.onServerResponse(spr);
+					final ServerPaymentResponse spr = new ServerPaymentResponse(pr);
+					
+					// Make the call from another thread, otherwise the library
+					// will block! On a real application, the server response
+					// would also be asynchronous!
+					new Thread(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								Thread.sleep(800);
+								caller.onServerResponse(spr);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					}).start();  
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

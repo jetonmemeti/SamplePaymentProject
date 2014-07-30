@@ -17,7 +17,7 @@
 	    <dependency>
 			<groupId>ch.uzh.csg</groupId>
 			<artifactId>nfcpaymentlib</artifactId>
-			<version>0.1.1</version>
+			<version>0.1.2</version>
 	    </dependency>
 		
 	    <!-- Spongy Castle (Bouncy Castle) -->
