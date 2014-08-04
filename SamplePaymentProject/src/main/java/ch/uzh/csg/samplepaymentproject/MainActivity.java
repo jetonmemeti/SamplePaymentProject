@@ -310,10 +310,13 @@ public class MainActivity extends Activity {
 		} else {
 			PaymentError err = (PaymentError) object;
 			
-			if (err == PaymentError.NO_SERVER_RESPONSE)
+			if (err == PaymentError.NO_SERVER_RESPONSE) {
 				msg = "Please check your transaction history on the server before you proceed! You did not receive any response from the server, but it might be that the server booked the transaction.";
-			else
+			} else if (err == PaymentError.SERVER_REFUSED && err.getErrorCause() != null) {
+				msg = err.getErrorCause();
+			} else {
 				msg = err.name();
+			}
 		}
 		
 		showDialog("Error", msg);
